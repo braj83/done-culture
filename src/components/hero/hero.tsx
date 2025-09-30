@@ -42,7 +42,7 @@ export default function RandomQuoteHeader() {
         <h1 className="mt-6 text-4xl sm:text-5xl md:text-6xl lg:text-7xl md:leading-[1.2] font-semibold tracking-tighter">
           {quote}
         </h1>
-        <Link href="#" className="text-lg sm:text-xl md:text-2xl text-gray-600 dark:text-gray-400 hover:underline mt-24 inline-block" >
+        <Link href="mailto:hello@doneculture.com" className="text-lg sm:text-xl md:text-2xl text-gray-600 dark:text-gray-400 hover:underline mt-24 inline-block" >
           hello@doneculture.com
         </Link>
       </div>
