@@ -18,7 +18,7 @@ const quotes = [
   "Failure counts as done. So do mistakes.",
   "Destruction is a variant of done.",
   "If you have an idea and publish it on the internet, that counts as a ghost of done.",
-  "Done is the engine of more"
+  "Done is the engine of more."
 ]
 
 export default function RandomQuoteHeader() {
