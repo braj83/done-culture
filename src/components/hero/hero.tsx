@@ -1,6 +1,6 @@
 'use client'
 
-import AnimatedGridPattern from "@/components/ui/animated-grid-pattern";
+import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from 'react'
 import Link from "next/link";

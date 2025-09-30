@@ -1,28 +1,36 @@
 "use client";
 
+import {
+  ComponentPropsWithoutRef,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import { motion } from "motion/react";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
-
 import { cn } from "@/lib/utils";
 
-interface AnimatedGridPatternProps {
+export interface AnimatedGridPatternProps
+  extends ComponentPropsWithoutRef<"svg"> {
   width?: number;
   height?: number;
   x?: number;
   y?: number;
-  strokeDasharray?: string | number;
+  strokeDasharray?: number | string;
   numSquares?: number;
-  className?: string;
   maxOpacity?: number;
   duration?: number;
+  repeatDelay?: number;
 }
 
 interface Square {
   id: number;
   pos: [number, number];
+  key: number; // Force re-animation by changing key
 }
 
-export default function AnimatedGridPattern({
+export function AnimatedGridPattern({
   width = 40,
   height = 40,
   x = -1,
@@ -32,40 +40,38 @@ export default function AnimatedGridPattern({
   className,
   maxOpacity = 0.5,
   duration = 4,
+  repeatDelay = 0.5,
   ...props
 }: AnimatedGridPatternProps) {
   const id = useId();
   const containerRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [squares, setSquares] = useState<Square[]>([]);
-  
-  // Memoized function to get a random position within the grid
+
+  // Generate random position based on current dimensions
   const getPos = useCallback(
-    (dimWidth: number, dimHeight: number): [number, number] => {
-      // Guard against invalid dimensions
-      if (dimWidth <= 0 || dimHeight <= 0) {
-        return [0, 0];
-      }
+    (containerWidth: number, containerHeight: number): [number, number] => {
       return [
-        Math.floor((Math.random() * dimWidth) / width),
-        Math.floor((Math.random() * dimHeight) / height),
+        Math.floor((Math.random() * containerWidth) / width),
+        Math.floor((Math.random() * containerHeight) / height),
       ];
     },
     [width, height]
   );
 
-  // Memoized function to generate initial squares
+  // Generate array of squares with random positions
   const generateSquares = useCallback(
-    (count: number, dimWidth: number, dimHeight: number): Square[] => {
+    (count: number): Square[] => {
       return Array.from({ length: count }, (_, i) => ({
         id: i,
-        pos: getPos(dimWidth, dimHeight),
+        pos: getPos(dimensions.width, dimensions.height),
+        key: 0,
       }));
     },
-    [getPos]
+    [dimensions.width, dimensions.height, getPos]
   );
 
-  // Function to update a single square's position
+  // Update a single square's position and trigger re-animation
   const updateSquarePosition = useCallback(
     (squareId: number) => {
       setSquares((currentSquares) =>
@@ -74,6 +80,7 @@ export default function AnimatedGridPattern({
             ? {
                 ...sq,
                 pos: getPos(dimensions.width, dimensions.height),
+                key: sq.key + 1, // Increment key to force re-animation
               }
             : sq
         )
@@ -82,14 +89,14 @@ export default function AnimatedGridPattern({
     [dimensions.width, dimensions.height, getPos]
   );
 
-  // Initialize squares when dimensions are first available
+  // Initialize squares when dimensions are available
   useEffect(() => {
-    if (dimensions.width > 0 && dimensions.height > 0 && squares.length === 0) {
-      setSquares(generateSquares(numSquares, dimensions.width, dimensions.height));
+    if (dimensions.width && dimensions.height) {
+      setSquares(generateSquares(numSquares));
     }
-  }, [dimensions.width, dimensions.height, numSquares, generateSquares, squares.length]);
+  }, [dimensions.width, dimensions.height, numSquares, generateSquares]);
 
-  // Resize observer to update container dimensions
+  // Resize observer to track container dimensions
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -138,7 +145,7 @@ export default function AnimatedGridPattern({
       </defs>
       <rect width="100%" height="100%" fill={`url(#${id})`} />
       <svg x={x} y={y} className="overflow-visible">
-        {squares.map(({ pos: [posX, posY], id: squareId }, index) => (
+        {squares.map(({ pos: [posX, posY], id: squareId, key: animKey }, index) => (
           <motion.rect
             initial={{ opacity: 0 }}
             animate={{ opacity: maxOpacity }}
@@ -146,10 +153,11 @@ export default function AnimatedGridPattern({
               duration,
               repeat: 1,
               delay: index * 0.1,
+              repeatDelay,
               repeatType: "reverse",
             }}
             onAnimationComplete={() => updateSquarePosition(squareId)}
-            key={squareId}
+            key={`${squareId}-${animKey}`}
             width={width - 1}
             height={height - 1}
             x={posX * width + 1}
