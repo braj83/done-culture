@@ -28,7 +28,7 @@ export default function RandomQuoteHeader() {
     setQuote(quotes[Math.floor(Math.random() * quotes.length)])
   }, [])
 
-  return <div className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden">
+  return <div className="relative min-h-dvh flex items-center justify-center px-6 overflow-hidden">
       <AnimatedGridPattern
         numSquares={30}
         maxOpacity={0.1}
